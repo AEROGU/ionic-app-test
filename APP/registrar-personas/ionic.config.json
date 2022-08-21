@@ -1,0 +1,7 @@
+{
+  "name": "Registrar personas",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue"
+}
