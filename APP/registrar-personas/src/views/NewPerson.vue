@@ -21,33 +21,25 @@
         <div class="rounded p-5 my-2 md:my-5 mx-5 md:mx-28" style="background-color: rgba(91, 33, 182, 0.3);">
           <form id="newPersonForm">
             <label for="name">Nombre: </label><br />
-            <input
-              type="text" name="name" id="name" placeholder="Nombre de la persona"
+            <input v-model="name" type="text" name="name" id="name" placeholder="Nombre de la persona"
               class="p-2 mb-3 min-w-full valid:border-green-500 invalid:border-red-500"
-              required minlength="5"
-            />
+              required minlength="5" :disabled="sending" />
             <br />
             <label for="phone">Teléfono: </label><br />
-            <input
-              type="text" name="phone" id="phone" placeholder="Teléfono"
-              class="p-2 mb-3 min-w-full valid:border-green-500 invalid:border-red-500"
-              required minlength="10" pattern="^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$"
-            />
+            <input v-model="phone" type="text" name="phone" id="phone" placeholder="Teléfono"
+              class="p-2 mb-3 min-w-full valid:border-green-500 invalid:border-red-500" required minlength="10"
+              pattern="^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$" :disabled="sending" />
             <br />
             <label for="email">E-Mail: </label><br />
-            <input
-              type="email" name="email" id="email" placeholder="Correo electrónico"
+            <input v-model="email" type="email" name="email" id="email" placeholder="Correo electrónico"
               class="p-2 mb-3 min-w-full valid:border-green-500 invalid:border-red-500"
-              required
-            />
+              required :disabled="sending" />
             <br />
             <input v-model="latitude" type="hidden" name="latitude" id="latitude" class="p-2" />
             <input v-model="longitude" type="hidden" name="longitude" id="longitude" class="p-2" />
 
-            <button
-              type="button" class="rounded bg-indigo-700 text-white px-5 py-2 mt-2 mr-2 disabled:bg-slate-500"
-              @click="getLocation(0)" :disabled="isLocating"
-            >
+            <button type="button" class="rounded bg-indigo-700 text-white px-5 py-2 mt-2 mr-2 disabled:bg-slate-500"
+              @click="getLocation(0)" :disabled="isLocating">
               Ubicar
             </button>
             <span v-show="located">
@@ -58,7 +50,7 @@
             <span v-show="isLocating">
               <div class="lds-dual-ring mr-5"></div>Obteniendo ubicación...
             </span>
-            
+
             <hr class="my-2" />
 
             <div class="text-right">
@@ -89,9 +81,12 @@ import { IonButtons, IonContent, IonHeader, IonMenuButton, IonPage, IonTitle, Io
 import { Geolocation } from '@capacitor/geolocation';
 import Swal from 'sweetalert2';
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { serverPersonUrl } from '@/ServerConfig';
 import axios from 'axios';
+
+const router = useRouter();
 
 // Status flags
 let isLocating = ref(false);
@@ -110,56 +105,64 @@ let form = document.querySelector('#newPersonForm');
 async function sendRequest() {
   sending.value = true;
 
-  await axios({
-    method: "post",
-    url: serverPersonUrl,
-    data: {
-      "name": name,
-      "phone": phone,
-      "email": email,
-      "latitude": latitude,
-      "longitude": longitude
-    }
-  }).catch((error) => {
-    if (error.request) {
+  let headers = {
+    "Content-Type": "application/json"
+  };
 
-      if (error.response.status === 0) { // Server not respondig
-        Swal.fire({
-          title: 'El servidor no responde',
-          text: 'Asegúrate que el servidor esté dado de alta y configurado',
-          icon: 'error',
-          heightAuto: false,
-        });
-      } else if (error.response.status === 400) { //Bad request (validation errors)
-        let responseEntries = Object.entries(error.response.data);
-        let output = "";
+  let data = {
+    "name": name.value,
+    "phone": phone.value,
+    "email": email.value,
+    "latitude": latitude.value,
+    "longitude": longitude.value
+  }
 
-        // Format response
-        for(let i=0; i<responseEntries.length; i++) {
-          output += "<strong>" + responseEntries[i][0] + "</strong>:<br>"
-          for(let j=0; j<responseEntries[i][1].length; j++) {
-            output += responseEntries[i][1][j] + "<br>";
+  console.log(data);
+
+  axios.post(serverPersonUrl, data, { "headers": headers })
+    .catch((error) => {
+      if (error.request) {
+
+        if (error.response.status === 0) { // Server not respondig
+          Swal.fire({
+            title: 'El servidor no responde',
+            text: 'Asegúrate que el servidor esté dado de alta y configurado',
+            icon: 'error',
+            heightAuto: false,
+          });
+        } else if (error.response.status === 400) { //Bad request (validation errors)
+          let responseEntries = Object.entries(error.response.data);
+          let output = "";
+
+          // Format response
+          for (let i = 0; i < responseEntries.length; i++) {
+            output += "<strong>" + responseEntries[i][0] + "</strong>:<br>"
+            for (let j = 0; j < responseEntries[i][1].length; j++) {
+              output += responseEntries[i][1][j] + "<br>";
+            }
           }
+
+          Swal.fire({
+            title: 'Errores de validación',
+            html: output,
+            icon: 'error',
+            heightAuto: false,
+          });
+        } else {
+          console.log("Que carajos pasó aquí!")
+          console.log(error);
         }
 
-        Swal.fire({
-          title: 'Errores de validación',
-          html: output,
-          icon: 'error',
-          heightAuto: false,
-        });
-      } else {
-        console.log("Que carajos pasó aquí!")
-        console.log(error);
+        console.log(error.response);
+
       }
-
-      console.log(error.response);
-
-    }
-  }).then(function (response) {
-    console.log("Response: ");
-    console.log(response);
-  });
+    })
+    .then(function (response) {
+      if (response) {
+        let id = response.data.id;
+        router.push("/person/" + id);
+      }
+    });
 
   sending.value = false;
 }
@@ -227,7 +230,7 @@ async function getLocation(tries = 0) {
     located.value = false;
     try {
       let coordinates = await Geolocation.getCurrentPosition();
-      await setTimeout(function(){
+      await setTimeout(function () {
         //
       }, 1000);
       coordinates = await Geolocation.getCurrentPosition(); // A second time increase the coordinates accuracy
@@ -255,6 +258,7 @@ async function getLocation(tries = 0) {
   width: 32px;
   height: 32px;
 }
+
 .lds-dual-ring:after {
   content: " ";
   display: block;
@@ -266,10 +270,12 @@ async function getLocation(tries = 0) {
   border-color: #fff transparent #fff transparent;
   animation: lds-dual-ring 1.2s linear infinite;
 }
+
 @keyframes lds-dual-ring {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }

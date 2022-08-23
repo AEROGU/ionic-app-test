@@ -29,8 +29,8 @@ class PersonController extends Controller {
                 'name' => 'required|string|max:255',
                 'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
                 'email' => 'required|string|email|max:255|unique:people',
-                'latitude' => 'nullable|integer',
-                'longitude' => 'nullable|integer',
+                'latitude' => 'required|regex:/^-?\d+(\.\d{1,16})?$/',
+                'longitude' => 'required|regex:/^-?\d+(\.\d{1,16})?$/',
             ],
             [
                 'required' => 'El campo :attribute es requerido.',
@@ -41,6 +41,9 @@ class PersonController extends Controller {
                 'integer' => 'El campo :attribute debe ser un número entero.',
                 'min' => 'El campo :attribute debe tener al menos :min caracteres.',
                 'phone.regex' => 'El campo :attribute debe ser un número de teléfono válido.',
+                'double' => 'El campo :attribute debe ser un número decimal.',
+                'latitude.regex' => 'La latitud debe ser un número decimal con máximo 16 decimales.',
+                'latitude.regex' => 'La longitud debe ser un número decimal con máximo 16 decimales.'
             ]
         );
 
@@ -75,8 +78,8 @@ class PersonController extends Controller {
                 'name' => 'nullable|string|max:255',
                 'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
                 'email' => 'nullable|string|email|max:255|unique:people' . $person->id,
-                'latitude' => 'nullable|integer',
-                'longitude' => 'nullable|integer',
+                'latitude' => 'nullable|regex:/^-?\d+(\.\d{1,16})?$/',
+                'longitude' => 'nullable|regex:/^-?\d+(\.\d{1,16})?$/',
             ],
             [
                 'string' => 'El campo debe ser una cadena de texto.',
@@ -86,6 +89,8 @@ class PersonController extends Controller {
                 'integer' => 'El campo :attribute debe ser un número entero.',
                 'min' => 'El campo :attribute debe tener al menos :min caracteres.',
                 'phone.regex' => 'El campo :attribute debe ser un número de teléfono válido.',
+                'latitude.regex' => 'La latitud debe ser un número decimal con máximo 16 decimales.',
+                'latitude.regex' => 'La longitud debe ser un número decimal con máximo 16 decimales.'
             ]
         );
 

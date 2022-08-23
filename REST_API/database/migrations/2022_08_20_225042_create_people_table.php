@@ -16,8 +16,8 @@ return new class extends Migration {
             $table->string('name');
             $table->string('phone');
             $table->string('email')->unique();
-            $table->smallInteger('latitude')->nullable();
-            $table->smallInteger('longitude')->nullable();
+            $table->decimal('latitude',22, 16);
+            $table->decimal('longitude',22, 16);
             $table->timestamps();
         });
     }
