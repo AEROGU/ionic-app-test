@@ -19,21 +19,35 @@
       <div id="container">
 
         <div class="rounded p-5 my-2 md:my-5 mx-5 md:mx-28" style="background-color: rgba(91, 33, 182, 0.3);">
-          <form action="" method="post">
+          <form id="newPersonForm">
             <label for="name">Nombre: </label><br />
-            <input type="text" name="name" id="name" placeholder="Nombre de la persona" class="p-2 mb-3 min-w-full" />
+            <input
+              type="text" name="name" id="name" placeholder="Nombre de la persona"
+              class="p-2 mb-3 min-w-full valid:border-green-500 invalid:border-red-500"
+              required minlength="5"
+            />
             <br />
             <label for="phone">Teléfono: </label><br />
-            <input type="text" name="phone" id="phone" placeholder="Teléfono" class="p-2 mb-3 min-w-full" />
+            <input
+              type="text" name="phone" id="phone" placeholder="Teléfono"
+              class="p-2 mb-3 min-w-full valid:border-green-500 invalid:border-red-500"
+              required minlength="10" pattern="^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$"
+            />
             <br />
             <label for="email">E-Mail: </label><br />
-            <input type="text" name="email" id="email" placeholder="Nombre de la persona" class="p-2 mb-3 min-w-full" />
+            <input
+              type="email" name="email" id="email" placeholder="Correo electrónico"
+              class="p-2 mb-3 min-w-full valid:border-green-500 invalid:border-red-500"
+              required
+            />
             <br />
             <input v-model="latitude" type="hidden" name="latitude" id="latitude" class="p-2" />
             <input v-model="longitude" type="hidden" name="longitude" id="longitude" class="p-2" />
 
-            <button type="button" class="rounded bg-indigo-700 text-white px-5 py-2 mt-2 mr-2 disabled:bg-slate-500"
-              @click="getLocation(0)" :disabled="isLocating">
+            <button
+              type="button" class="rounded bg-indigo-700 text-white px-5 py-2 mt-2 mr-2 disabled:bg-slate-500"
+              @click="getLocation(0)" :disabled="isLocating"
+            >
               Ubicar
             </button>
             <span v-show="located">
@@ -48,9 +62,15 @@
             <hr class="my-2" />
 
             <div class="text-right">
+
               <span v-if="!located" class="mr-4 text-slate-400">Debe obtener la ubicación para poder guardar</span>
-              <button type="submit" class="rounded bg-indigo-700 text-white px-5 py-2 disabled:bg-slate-500"
-                :disabled="!located">
+              <span v-if="sending">
+                <div class="lds-dual-ring mr-5"></div>
+                <span class="mr-4 text-slate-400">Creando usuario, espere por favor...</span>
+              </span>
+
+              <button type="button" class="rounded bg-indigo-700 text-white px-5 py-2 disabled:bg-slate-500"
+                :disabled="!located || sending" @click="sendRequest">
                 Crear
               </button>
             </div>
@@ -70,11 +90,79 @@ import { Geolocation } from '@capacitor/geolocation';
 import Swal from 'sweetalert2';
 import { ref } from 'vue';
 
+import { serverPersonUrl } from '@/ServerConfig';
+import axios from 'axios';
+
+// Status flags
+let isLocating = ref(false);
+let located = ref(false);
+let sending = ref(false);
+
+// Reactive form data
+let name = ref("");
+let phone = ref("");
+let email = ref("");
 let latitude = ref(0);
 let longitude = ref(0);
 
-let isLocating = ref(false);
-let located = ref(false);
+let form = document.querySelector('#newPersonForm');
+
+async function sendRequest() {
+  sending.value = true;
+
+  await axios({
+    method: "post",
+    url: serverPersonUrl,
+    data: {
+      "name": name,
+      "phone": phone,
+      "email": email,
+      "latitude": latitude,
+      "longitude": longitude
+    }
+  }).catch((error) => {
+    if (error.request) {
+
+      if (error.response.status === 0) { // Server not respondig
+        Swal.fire({
+          title: 'El servidor no responde',
+          text: 'Asegúrate que el servidor esté dado de alta y configurado',
+          icon: 'error',
+          heightAuto: false,
+        });
+      } else if (error.response.status === 400) { //Bad request (validation errors)
+        let responseEntries = Object.entries(error.response.data);
+        let output = "";
+
+        // Format response
+        for(let i=0; i<responseEntries.length; i++) {
+          output += "<strong>" + responseEntries[i][0] + "</strong>:<br>"
+          for(let j=0; j<responseEntries[i][1].length; j++) {
+            output += responseEntries[i][1][j] + "<br>";
+          }
+        }
+
+        Swal.fire({
+          title: 'Errores de validación',
+          html: output,
+          icon: 'error',
+          heightAuto: false,
+        });
+      } else {
+        console.log("Que carajos pasó aquí!")
+        console.log(error);
+      }
+
+      console.log(error.response);
+
+    }
+  }).then(function (response) {
+    console.log("Response: ");
+    console.log(response);
+  });
+
+  sending.value = false;
+}
 
 async function getLocation(tries = 0) {
 
@@ -139,14 +227,14 @@ async function getLocation(tries = 0) {
     located.value = false;
     try {
       let coordinates = await Geolocation.getCurrentPosition();
-      // await setTimeout(function(){
-      //   //
-      // }, 1000);
-      // coordinates = await Geolocation.getCurrentPosition(); // A second time increase the coordinates accuracy
+      await setTimeout(function(){
+        //
+      }, 1000);
+      coordinates = await Geolocation.getCurrentPosition(); // A second time increase the coordinates accuracy
       located.value = true;
       latitude.value = coordinates.coords.latitude;
       longitude.value = coordinates.coords.longitude;
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
       await Swal.fire({
         title: 'Error al obtener la ubicación',
