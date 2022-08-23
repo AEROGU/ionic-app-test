@@ -12,7 +12,7 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/person/:id',
-    component: () => import ('../views/FolderPage.vue')
+    component: () => import ('../views/OnePerson.vue')
   },
   {
     path: '/person/new',
@@ -20,19 +20,19 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/person/search/email',
-    component: () => import ('../views/FolderPage.vue')
+    component: () => import ('../views/SearchPerson.vue')
   },
   {
     path: '/person/search/phone',
-    component: () => import ('../views/FolderPage.vue')
+    component: () => import ('../views/SearchPerson.vue')
   },
   {
     path: '/person/search/email/:email',
-    component: () => import ('../views/FolderPage.vue')
+    component: () => import ('../views/SearchPerson.vue')
   },
   {
     path: '/person/search/phone/:phone',
-    component: () => import ('../views/FolderPage.vue')
+    component: () => import ('../views/SearchPerson.vue')
   }
 ]
 

@@ -5,20 +5,20 @@
         <ion-buttons slot="start">
           <ion-menu-button color="primary"></ion-menu-button>
         </ion-buttons>
-        <ion-title>Todas las personas</ion-title>
+        <ion-title>Nueva persona</ion-title>
       </ion-toolbar>
     </ion-header>
 
     <ion-content :fullscreen="true">
       <ion-header collapse="condense">
         <ion-toolbar>
-          <ion-title size="large">Todoas las personas</ion-title>
+          <ion-title size="large">Nueva persona</ion-title>
         </ion-toolbar>
       </ion-header>
 
-      <div id="container">
+      <div id="container" class=" bg-slate-50 items-center flex h-full">
 
-        <div class="rounded p-5 my-2 md:my-5 mx-5 md:mx-28" style="background-color: rgba(91, 33, 182, 0.3);">
+        <div class="rounded p-5 my-2 md:my-5 mx-5 md:mx-28 my-auto w-full" style="background-color: rgba(91, 33, 182, 0.3);">
           <form id="newPersonForm">
             <label for="name">Nombre: </label><br />
             <input v-model="name" type="text" name="name" id="name" placeholder="Nombre de la persona"
@@ -100,7 +100,16 @@ let email = ref("");
 let latitude = ref(0);
 let longitude = ref(0);
 
-let form = document.querySelector('#newPersonForm');
+function resetValues() {
+  sending.value = false;
+  name.value = "";
+  phone.value = "";
+  email.value = "";
+  latitude.value = 0;
+  longitude.value = 0;
+  isLocating.value = false;
+  located.value = false;
+}
 
 async function sendRequest() {
   sending.value = true;
@@ -162,9 +171,9 @@ async function sendRequest() {
         let id = response.data.id;
         router.push("/person/" + id);
       }
+      sending.value = false;
+      resetValues();
     });
-
-  sending.value = false;
 }
 
 async function getLocation(tries = 0) {

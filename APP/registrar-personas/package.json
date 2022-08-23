@@ -24,6 +24,7 @@
     "sass-loader": "^13.0.2",
     "sweetalert2": "^11.4.29",
     "vue": "^3.2.21",
+    "vue-ionicons": "^3.0.5",
     "vue-router": "^4.0.12"
   },
   "devDependencies": {
