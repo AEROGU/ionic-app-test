@@ -97,7 +97,7 @@ ionic serve
 
 La app desde el navegador utilizarla la IP de retorno 127.0.0.1.
 
-Para utilizar la "apk" de android, debes obtener la IP local del servidor REST, y colocarla en el archivo de configuración `./APP/registrar-personas/src/ServerConfig.ts` cambiar `const baseUrl = "127.0.0.1";` por la ip donde se ejecuta el servidor REST. Luego aplicar los cambios a la app Android con:
+Para utilizar la APK de android, debes obtener la IP local del servidor REST, y colocarla en el archivo de configuración `./APP/registrar-personas/src/ServerConfig.ts` cambiar `const baseUrl = "127.0.0.1";` por la ip donde se ejecuta el servidor REST. Luego aplicar los cambios a la app Android con:
 
 ```bash
 ionic build
@@ -107,7 +107,7 @@ ionic cap open android
 
 
 
-_Menciona las herramientas que utilizaste para crear tu proyecto_
+_Herramientas utilizadas para crear este proyecto_
 
 * [Laravel - The PHP Framework For Web Artisans](https://laravel.com/) - El framework web usado
 
