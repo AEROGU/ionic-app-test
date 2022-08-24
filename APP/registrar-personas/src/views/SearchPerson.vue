@@ -23,7 +23,7 @@
         <div class="text-center mt-10">
             <label for="search-input" class="mr-4">{{ searchByFormatted }}:</label>
             <input v-model="searchedValue" id="search-input" v-show="!isLoadingPersons" type="text" :placeholder="searchByFormatted + ' a buscar'" class="text-center p-1 text-lg mt-1">
-            <ion-button v-show="!isLoadingPersons" color="tertiary" class="ion-activatable ripple-parent mt-1" @click="loadPersons">
+            <ion-button v-show="!isLoadingPersons" color="tertiary" class="ion-activatable ripple-parent mt-1" @click="search">
                 <SearchIcon class="fill-slate-100 text-2xl"></SearchIcon>
             </ion-button>
         </div>
@@ -50,20 +50,27 @@ import Swal from 'sweetalert2';
 const router = useRouter();
 const route = useRoute();
 
+let searchBy = computed(() => route.fullPath.split("/")[3]); // email or phone
+
 let searchedValue = ref("");
 
-let searchBy = computed(() => route.fullPath.split("/")[3]); // email or phone
 let searchByFormatted = computed(()=> searchBy.value == 'phone' ? 'Teléfono' : 'E-Mail');
 
 function searchUrl(value = "") {
-    return searchBy.value == 'phone' ? serverSearchPersonByPhoneUrl : serverSearchPersonByEMailUrl + value;
+    let output = searchBy.value == 'phone' ? serverSearchPersonByPhoneUrl : serverSearchPersonByEMailUrl;
+    return output + value;
 }
 
 let persons = ref([]);
 
 let isLoadingPersons = ref(false);
 
+function search() {
+  router.push("/person/search/" + searchBy.value + "/" + encodeURIComponent(searchedValue.value));
+}
+
 function loadPersons() {
+
   isLoadingPersons.value = true;
   axios.get(searchUrl(searchedValue.value))
   .catch((error) => {
@@ -88,6 +95,11 @@ function loadPersons() {
 }
 
 onIonViewDidEnter(()=>{
+  if (typeof(route.params[searchBy.value]) === 'undefined') {
+    searchedValue.value = "";
+  } else {
+    searchedValue.value = String(route.params[searchBy.value]);
+  }
   loadPersons();
 });
 
